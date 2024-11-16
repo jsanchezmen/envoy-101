@@ -1,0 +1,49 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: dummy-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      deploy: dummy-app
+  template:
+    metadata:
+      labels:
+        deploy: dummy-app
+    spec:
+      volumes:
+        - name: envoy-config
+          configMap:
+            name: envoy-cm
+      containers:
+        - name: envoy-proxy
+          image: envoyproxy/envoy:v1.31.3
+          args:
+            - "-c"
+            - "/config/envoy.yaml"
+          volumeMounts:
+            - readOnly: true
+              mountPath: /config
+              name: envoy-config
+        - name: netshoot
+          image: nicolaka/netshoot
+          command: [ "/bin/sleep", "3650d" ]
+        - name: go-httpbin-server-1
+          image: sjulian/go-httpbin:v0.0.1
+          env:
+            - name: SERVER_PORT
+              value: "8081"
+            - name: SERVER_NAME
+              value: "SERVER_1"
+        - name: go-httpbin-server-2
+          image: sjulian/go-httpbin:v0.0.1
+          env:
+            - name: SERVER_PORT
+              value: "8082"
+            - name: SERVER_NAME
+              value: "SERVER_2"
+          
+          
+
+          
