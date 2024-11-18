@@ -16,6 +16,15 @@ spec:
         - name: envoy-config
           configMap:
             name: envoy-cm
+        - name: server-cert
+          configMap:
+            name: server-cert-cm
+        - name: server-key
+          configMap:
+            name: server-key-cm
+        - name: ca-cert
+          configMap:
+            name: ca-cert-cm
       containers:
         - name: envoy-proxy
           image: envoyproxy/envoy:v1.31.3
@@ -26,9 +35,23 @@ spec:
             - readOnly: true
               mountPath: /config
               name: envoy-config
+            - readOnly: true
+              mountPath: /certs/server-cert
+              name: server-cert
+            - readOnly: true
+              mountPath: /certs/server-key
+              name: server-key
+            - readOnly: true
+              mountPath: /certs/ca-cert
+              name: ca-cert
         - name: netshoot
           image: nicolaka/netshoot
-          command: [ "/bin/sleep", "3650d" ]
+          command: ["/bin/sleep", "3650d"]
+          # then run `update-ca-certificates` to load CA certificate
+          volumeMounts:
+            - readOnly: true
+              mountPath: /usr/local/share/ca-certificates/
+              name: ca-cert
         - name: go-httpbin-server-1
           image: sjulian/go-httpbin:v0.0.1
           env:
